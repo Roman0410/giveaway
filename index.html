@@ -47,6 +47,11 @@ details{margin-top:12px}summary{cursor:pointer;color:var(--muted);font-size:13px
 .win{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}
 .win .place{font-size:22px;font-weight:800;color:var(--acc);min-width:34px}
 .win .body{flex:1;min-width:0}
+.win.pending{opacity:.45;border-style:dashed}
+.win.first{border:2px solid var(--acc);background:color-mix(in srgb,var(--acc) 7%,transparent)}
+.win.first a{font-size:20px}
+.drumPlace{text-align:center;font-weight:700;color:var(--acc);margin-top:16px;min-height:22px}
+.drumPlace + .drum{margin-top:6px}
 .win a{color:var(--acc);font-weight:700;text-decoration:none;font-size:17px}
 .win q{display:block;color:var(--muted);font-size:13px;margin-top:2px;quotes:none;word-break:break-word}
 .badge{display:inline-block;font-size:12px;padding:1px 8px;border-radius:20px;margin-left:6px}
@@ -169,6 +174,7 @@ td.t{word-break:break-word;max-width:340px}
 <section class="card hidden" id="secDraw">
   <h2><span class="n">4</span>Розіграш</h2>
   <div class="row" style="margin-top:0"><button class="pri" id="btnDraw">🎲 Обрати переможця</button></div>
+  <div class="drumPlace" id="drumPlace"></div>
   <div class="drum" id="drum">—</div>
   <div id="results"></div>
   <div class="stamp" id="stamp"></div>
@@ -364,8 +370,10 @@ function recompute(){
 
 // ---------- 4. Draw ----------
 function rnd(n){ const a=new Uint32Array(1); const lim=Math.floor(0x100000000/n)*n; do crypto.getRandomValues(a); while(a[0]>=lim); return a[0]%n; }
-function resetDraw(){ S.winners=[]; S.drawn=new Set(); $('results').innerHTML=''; $('drum').textContent='—'; $('stamp').textContent=''; }
-function available(){ const taken=new Set(S.winners.map(w=>w.c.username)); return S.pool.filter(c=>!taken.has(c.username) && !S.drawn.has(c.username)); }
+function resetDraw(){ S.winners=[]; S.drawn=new Set(); $('results').innerHTML=''; $('drum').textContent='—'; $('drumPlace').textContent=''; $('stamp').textContent=''; }
+function available(){ const taken=new Set(S.winners.filter(Boolean).map(w=>w.c.username)); return S.pool.filter(c=>!taken.has(c.username) && !S.drawn.has(c.username)); }
+const medal = p => p===1?'🥇':p===2?'🥈':p===3?'🥉':p;
+function placeLabel(p){ $('drumPlace').textContent = `${typeof medal(p)==='string'?medal(p)+' ':''}${p} місце`; }
 function spin(cands){
   return new Promise(res=>{
     const end = Date.now()+2200; let delay=40;
@@ -380,26 +388,31 @@ $('btnDraw').onclick = async () => {
   resetDraw();
   const n = Math.max(1, +$('winners').value||1);
   $('btnDraw').disabled=true;
-  for (let i=0;i<n;i++){
+  S.winners = new Array(n).fill(null); renderWinners();
+  for (let i=n-1;i>=0;i--){
     const cands = available();
-    if (!cands.length){ $('results').insertAdjacentHTML('beforeend','<p class="msg err">Недостатньо учасників.</p>'); break; }
+    if (!cands.length){ $('results').insertAdjacentHTML('beforeend','<p class="msg err">Недостатньо учасників для всіх місць.</p>'); break; }
+    placeLabel(i+1);
     const w = await spin(cands); S.drawn.add(w.username);
-    S.winners.push({c:w,status:S.followers?'ok':'unknown'}); renderWinners();
-    if (i<n-1) await new Promise(r=>setTimeout(r,700));
+    S.winners[i] = {c:w,status:S.followers?'ok':'unknown'}; renderWinners();
+    if (i>0) await new Promise(r=>setTimeout(r,1500));
   }
+  $('drumPlace').textContent = n>1 ? 'Розіграш завершено' : '';
   $('btnDraw').disabled=false; $('btnDraw').textContent='🎲 Провести заново';
   $('stamp').textContent = `Розіграш проведено ${new Date().toLocaleString('uk-UA')} · учасників у барабані: ${S.pool.length} · генератор: crypto.getRandomValues`;
 };
 async function reroll(i){
   const cands = available();
   if (!cands.length) return alert('Більше немає учасників для перевибору');
+  placeLabel(i+1);
   const w = await spin(cands); S.drawn.add(w.username);
   S.winners[i] = {c:w,status:S.followers?'ok':'unknown'}; renderWinners();
 }
 function renderWinners(){
   $('results').innerHTML = S.winners.map((w,i)=>{
+    if (!w) return `<div class="win pending"><div class="place">${medal(i+1)}</div><div class="body"><b>${i+1} місце</b><q>ще не розіграно…</q></div></div>`;
     const b = w.status==='ok'?'<span class="badge b-ok">підписаний ✓</span>':w.status==='no'?'<span class="badge b-bad">не підписаний</span>':'<span class="badge b-warn">перевірте підписку</span>';
-    return `<div class="win"><div class="place">${i+1}</div><div class="body">
+    return `<div class="win${i===0?' first':''}"><div class="place">${medal(i+1)}</div><div class="body"><div class="msg" style="margin:0">${i+1} місце</div>
       <a href="https://www.instagram.com/${encodeURIComponent(w.c.username)}/" target="_blank" rel="noopener">@${esc(w.c.username)}</a>${b}
       <q>«${esc(w.c.text)}»</q>
       <div class="acts">
