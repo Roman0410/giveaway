@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Розіграш Instagram</title>
+<style>
+:root{--bg:#f6f5f8;--card:#fff;--fg:#1c1b22;--muted:#6b6878;--line:#e4e1ea;--acc:#d6246e;--acc2:#7b2ff7;--ok:#1a8f4c;--bad:#c8323b;--warn:#b7791f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#131218;--card:#1d1c24;--fg:#eeedf3;--muted:#a09dad;--line:#302e3a;--ok:#41c27a;--bad:#ff6b73;--warn:#e2a646;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#131218;--card:#1d1c24;--fg:#eeedf3;--muted:#a09dad;--line:#302e3a;--ok:#41c27a;--bad:#ff6b73;--warn:#e2a646;color-scheme:dark}
+:root[data-theme="light"]{color-scheme:light}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.theme{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px;flex-shrink:0}
+.theme button{padding:5px 11px;border-radius:999px;background:transparent;font-size:13px;color:var(--muted)}
+.theme button.on{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:880px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:26px;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.card h2{font-size:17px;margin:0 0 12px;display:flex;gap:10px;align-items:center}
+.n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-size:13px;font-weight:700}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+input[type=text],input[type=password],input[type=number],textarea,select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg);font:inherit}
+textarea{min-height:90px;resize:vertical;font-family:ui-monospace,Consolas,monospace;font-size:13px}
+button{font:inherit;border:0;border-radius:9px;padding:9px 16px;cursor:pointer;background:var(--line);color:var(--fg)}
+button.pri{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-weight:600}
+button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+@media (max-width:600px){.grid2{grid-template-columns:1fr}}
+.chk{display:flex;gap:8px;align-items:flex-start;margin-top:10px;color:var(--fg);font-size:14px}
+.chk input{margin-top:4px}
+.msg{font-size:13px;margin-top:10px;color:var(--muted)}
+.msg.err{color:var(--bad)}.msg.ok{color:var(--ok)}
+details{margin-top:12px}summary{cursor:pointer;color:var(--muted);font-size:13px}
+.media{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px}
+.m{border:2px solid transparent;border-radius:10px;overflow:hidden;cursor:pointer;background:var(--bg);font-size:12px}
+.m.sel{border-color:var(--acc)}
+.m img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--line)}
+.m div{padding:5px 7px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.stat{flex:1;min-width:120px;background:var(--bg);border-radius:10px;padding:10px 12px}
+.stat b{display:block;font-size:22px}.stat span{font-size:12px;color:var(--muted)}
+.drum{margin-top:16px;text-align:center;font-size:30px;font-weight:700;min-height:54px;padding:8px;border-radius:12px;background:var(--bg);word-break:break-all}
+.win{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}
+.win .place{font-size:22px;font-weight:800;color:var(--acc);min-width:34px}
+.win .body{flex:1;min-width:0}
+.win a{color:var(--acc);font-weight:700;text-decoration:none;font-size:17px}
+.win q{display:block;color:var(--muted);font-size:13px;margin-top:2px;quotes:none;word-break:break-word}
+.badge{display:inline-block;font-size:12px;padding:1px 8px;border-radius:20px;margin-left:6px}
+.b-ok{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.b-warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.b-bad{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+.win .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.win .acts button{padding:5px 10px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600}
+td.t{word-break:break-word;max-width:340px}
+.tblwrap{max-height:380px;overflow:auto}
+.stamp{font-size:12px;color:var(--muted);margin-top:10px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<main>
+<div class="top">
+  <h1>🎁 Розіграш в Instagram</h1>
+  <div class="theme" role="group" aria-label="Тема">
+    <button data-t="light" title="Світла тема">☀️ Світла</button>
+    <button data-t="dark" title="Темна тема">🌙 Темна</button>
+  </div>
+</div>
+<script>
+(function(){
+  const root=document.documentElement;
+  function apply(t){
+    if(t) root.dataset.theme=t; else delete root.dataset.theme;
+    const cur=t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+    document.querySelectorAll('.theme button').forEach(b=>b.classList.toggle('on',b.dataset.t===cur));
+  }
+  let saved=null; try{saved=localStorage.getItem('giveaway-theme');}catch(e){}
+  apply(saved);
+  document.querySelectorAll('.theme button').forEach(b=>b.onclick=()=>{
+    try{localStorage.setItem('giveaway-theme',b.dataset.t);}catch(e){}
+    apply(b.dataset.t);
+  });
+})();
+</script>
+<p class="sub">Учасники: усі, хто підписаний і залишив коментар з позначкою під постом. Коментарі підтягуються через Instagram Graph API. Токен залишається лише у вашому браузері.</p>
+
+<section class="card">
+  <h2><span class="n">1</span>Підключення акаунта</h2>
+  <label for="token">Access token (Instagram API або Facebook Graph API)</label>
+  <input id="token" type="password" placeholder="IGAA… або EAA…" autocomplete="off">
+  <div class="row">
+    <button class="pri" id="btnConnect">Підключити й завантажити пости</button>
+    <button id="btnDemo">Демо-режим</button>
+  </div>
+  <div class="msg" id="msgConnect"></div>
+  <details>
+    <summary>Де взяти токен?</summary>
+    <p class="msg" style="color:var(--fg)">Від замовника потрібен <b>лише доступ до Instagram</b>. Застосунок Meta створюєте ви на своєму акаунті й використовуєте для всіх замовників.</p>
+
+    <p class="msg" style="color:var(--fg);margin-bottom:0"><b>А. Один раз: ваш застосунок</b></p>
+    <ol class="msg" style="color:var(--fg);margin-top:4px">
+      <li>Зайдіть на <b>developers.facebook.com</b> зі <b>свого</b> Facebook і зареєструйтеся як розробник.</li>
+      <li><b>My Apps → Create App</b> → use case <b>«Manage messaging &amp; content on Instagram»</b>. Бізнес-портфоліо можна не підключати.</li>
+      <li><b>Use cases → Customize</b> → у Permissions додайте <code>instagram_business_basic</code> і <code>instagram_business_manage_comments</code>.</li>
+    </ol>
+
+    <p class="msg" style="color:var(--fg);margin-bottom:0"><b>Б. Для кожного замовника</b></p>
+    <ol class="msg" style="color:var(--fg);margin-top:4px">
+      <li>Акаунт замовника має бути <b>професійним</b> (Автор або Бізнес): у застосунку Instagram <b>☰ → Тип акаунта та інструменти</b>. Facebook для цього не потрібен.</li>
+      <li>У вашому застосунку: <b>App roles → Roles → Add People → Instagram Tester</b> → нік замовника.</li>
+      <li>Увійдіть в Instagram замовника на <b>instagram.com</b> → <b>Налаштування → Сайти та застосунки → Запрошення тестувальника</b> → прийміть.</li>
+      <li>У застосунку: <b>API setup with Instagram login → Generate access tokens → Add account</b> → вхід під Instagram замовника → <b>Allow</b> → <b>Generate token</b>.</li>
+      <li>Скопіюйте токен (починається з <code>IGAA</code>) і вставте сюди. Токен діє близько 60 днів.</li>
+    </ol>
+
+    <p class="msg" style="color:var(--fg);margin-bottom:0"><b>Підписники для перевірки підписки</b></p>
+    <p class="msg" style="margin-top:4px">Поки маєте доступ до акаунта, замовте архів <b>заздалегідь</b> (готується від кількох хвилин до кількох годин): <b>Центр облікових записів → Ваша інформація та дозволи → Завантажити інформацію</b> → лише «Підписники та підписки», формат <b>JSON</b>. Потрібний файл: <code>followers_1.json</code>.</p>
+
+    <p class="msg" style="margin-bottom:0"><b>Безпека</b></p>
+    <ul class="msg" style="margin-top:4px">
+      <li>Код підтвердження входу прийде замовнику, тож зручно робити все разом на дзвінку.</li>
+      <li>Нікому не пересилайте токен. Після розіграшу замовник може прибрати доступ: <b>Налаштування → Сайти та застосунки</b>, а також змінити пароль.</li>
+    </ul>
+
+    <p class="msg">Не виходить з API (акаунт не можна зробити професійним тощо)? Скористайтеся ручним режимом унизу сторінки: скопіюйте коментарі з поста й вставте їх туди.</p>
+    <p class="msg">Альтернатива: токен Facebook (<code>EAA…</code>) з Graph API Explorer з дозволами <code>instagram_basic</code>, <code>instagram_manage_comments</code>, <code>pages_show_list</code>, якщо Instagram прив'язаний до сторінки Facebook.</p>
+  </details>
+</section>
+
+<section class="card hidden" id="secPost">
+  <h2><span class="n">2</span>Оберіть пост</h2>
+  <label for="postUrl">Посилання на пост (або клікніть на пост нижче)</label>
+  <input id="postUrl" type="text" placeholder="https://www.instagram.com/p/XXXXXXXX/">
+  <div class="media" id="media"></div>
+  <div class="row">
+    <button class="pri" id="btnComments" disabled>Завантажити коментарі</button>
+  </div>
+  <div class="msg" id="msgPost"></div>
+</section>
+
+<section class="card hidden" id="secRules">
+  <h2><span class="n">3</span>Умови</h2>
+  <div class="grid2">
+    <div><label for="minTags">Мінімум позначок у коментарі</label><input id="minTags" type="number" min="1" value="1"></div>
+    <div><label for="winners">Кількість переможців</label><input id="winners" type="number" min="1" value="1"></div>
+    <div><label for="mode">Шанси</label>
+      <select id="mode"><option value="person">1 людина = 1 шанс</option><option value="comment">Кожен коментар з позначкою = окремий шанс</option></select></div>
+    <div><label for="exclude">Виключити акаунти (через кому)</label><input id="exclude" type="text" placeholder="mybrand, friend.account"></div>
+  </div>
+  <label class="chk"><input type="checkbox" id="replies"> Враховувати відповіді на коментарі (replies)</label>
+
+  <label style="margin-top:16px">Список підписників (для автоматичної перевірки підписки)</label>
+  <p class="msg" style="margin-top:0">Instagram API <b>не віддає список підписників</b>. Щоб перевіряти підписку автоматично, завантажте файл <code>followers_1.json</code> або <code>.html</code> з архіву даних Instagram (Налаштування → Центр облікових записів → Ваша інформація → Завантажити інформацію → «Підписники та підписки»). Або вставте ніки списком. Без списку підписку переможця перевіряєте вручну кнопкою.</p>
+  <input type="file" id="followersFile" accept=".json,.html,.htm,.txt" multiple>
+  <textarea id="followersText" placeholder="nick1&#10;nick2&#10;…" style="margin-top:8px;min-height:60px"></textarea>
+  <div class="msg" id="msgFollowers"></div>
+
+  <div class="stats" id="stats"></div>
+  <details><summary>Всі коментарі та причини відсіву</summary><div class="tblwrap"><table id="tbl"></table></div></details>
+</section>
+
+<section class="card hidden" id="secDraw">
+  <h2><span class="n">4</span>Розіграш</h2>
+  <div class="row" style="margin-top:0"><button class="pri" id="btnDraw">🎲 Обрати переможця</button></div>
+  <div class="drum" id="drum">—</div>
+  <div id="results"></div>
+  <div class="stamp" id="stamp"></div>
+</section>
+
+<details class="card">
+  <summary style="font-size:14px">Немає доступу до API? Вставити коментарі вручну (JSON або текст)</summary>
+  <p class="msg">JSON-відповідь з Graph API Explorer (<code>{media-id}/comments?fields=username,text,timestamp</code>) або текст у форматі «нік коментар» по одному в рядку.</p>
+  <label for="manualOwner">Ваш нік (автор поста)</label>
+  <input id="manualOwner" type="text" placeholder="mybrand">
+  <textarea id="manual" placeholder='{"data":[{"username":"anna","text":"@olena @ira хочу!"}]}'></textarea>
+  <div class="row"><button id="btnManual">Використати ці коментарі</button></div>
+  <div class="msg" id="msgManual"></div>
+</details>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const S = { base:null, mediaPath:null, owner:'', media:[], mediaId:null, comments:[], followers:null, pool:[], winners:[], drawn:new Set() };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = u => String(u||'').trim().replace(/^@/,'').toLowerCase();
+function msg(id, text, cls){ const e=$(id); e.textContent=text; e.className='msg'+(cls?' '+cls:''); }
+
+async function getJSON(url){
+  const r = await fetch(url);
+  const j = await r.json().catch(()=>({}));
+  if (j.error) throw new Error(j.error.message || 'Помилка API');
+  if (!r.ok) throw new Error('HTTP '+r.status);
+  return j;
+}
+function apiUrl(path, params){
+  const u = new URL(S.base + path);
+  Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
+  u.searchParams.set('access_token', $('token').value.trim());
+  return u.toString();
+}
+async function fetchAll(path, params, max=5000){
+  let url = apiUrl(path, params), out = [];
+  while (url && out.length < max){
+    const j = await getJSON(url);
+    out.push(...(j.data||[]));
+    url = j.paging && j.paging.next;
+  }
+  return out;
+}
+
+// ---------- 1. Connect ----------
+$('btnConnect').onclick = async () => {
+  const t = $('token').value.trim();
+  if (!t) return msg('msgConnect','Вставте токен','err');
+  msg('msgConnect','Підключаюсь…');
+  try{
+    if (t.startsWith('IG')){
+      S.base = 'https://graph.instagram.com/v21.0';
+      const me = await getJSON(apiUrl('/me',{fields:'user_id,username'}));
+      S.owner = norm(me.username); S.mediaPath = '/me/media';
+    } else {
+      S.base = 'https://graph.facebook.com/v21.0';
+      const pages = await fetchAll('/me/accounts',{fields:'name,instagram_business_account{id,username}'});
+      const p = pages.find(p=>p.instagram_business_account);
+      if (!p) throw new Error('Не знайдено Instagram-акаунт, прив\'язаний до ваших сторінок Facebook');
+      S.owner = norm(p.instagram_business_account.username);
+      S.mediaPath = '/'+p.instagram_business_account.id+'/media';
+    }
+    msg('msgConnect','Підключено: @'+S.owner+'. Завантажую пости…','ok');
+    S.media = await fetchAll(S.mediaPath,{fields:'id,caption,permalink,timestamp,media_type,media_url,thumbnail_url,comments_count',limit:50},150);
+    msg('msgConnect','Підключено: @'+S.owner+' · постів: '+S.media.length,'ok');
+    renderMedia();
+  }catch(e){ msg('msgConnect','Помилка: '+e.message,'err'); }
+};
+
+function renderMedia(){
+  $('secPost').classList.remove('hidden');
+  $('media').innerHTML = S.media.map(m=>`<div class="m" data-id="${esc(m.id)}">
+    <img loading="lazy" src="${esc(m.thumbnail_url||m.media_url||'')}" alt="">
+    <div>💬 ${m.comments_count??'?'} · ${esc((m.caption||'').slice(0,40))}</div></div>`).join('');
+  $('media').querySelectorAll('.m').forEach(el=>el.onclick=()=>selectMedia(el.dataset.id));
+}
+function selectMedia(id){
+  S.mediaId = id;
+  $('media').querySelectorAll('.m').forEach(el=>el.classList.toggle('sel', el.dataset.id===id));
+  const m = S.media.find(m=>m.id===id); if (m && m.permalink) $('postUrl').value = m.permalink;
+  $('btnComments').disabled = false;
+}
+$('postUrl').oninput = () => {
+  const code = ($('postUrl').value.match(/\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/)||[])[1];
+  const m = code && S.media.find(m=>(m.permalink||'').includes('/'+code));
+  if (m) selectMedia(m.id); else { S.mediaId=null; $('btnComments').disabled=true;
+    $('media').querySelectorAll('.m').forEach(el=>el.classList.remove('sel'));
+    if (code) msg('msgPost','Пост не знайдено серед завантажених постів вашого акаунта','err'); }
+};
+
+// ---------- 2. Comments ----------
+$('btnComments').onclick = async () => {
+  msg('msgPost','Завантажую коментарі…');
+  try{
+    const list = await fetchAll('/'+S.mediaId+'/comments',{fields:'id,text,username,timestamp,replies{id,text,username,timestamp}',limit:50});
+    S.comments = [];
+    list.forEach(c=>{
+      S.comments.push({id:c.id,username:norm(c.username),text:c.text||'',ts:c.timestamp,reply:false});
+      ((c.replies&&c.replies.data)||[]).forEach(r=>S.comments.push({id:r.id,username:norm(r.username),text:r.text||'',ts:r.timestamp,reply:true}));
+    });
+    msg('msgPost','Завантажено коментарів: '+S.comments.length,'ok');
+    showRules();
+  }catch(e){ msg('msgPost','Помилка: '+e.message,'err'); }
+};
+
+// ---------- Manual / demo ----------
+function parseManual(raw){
+  raw = raw.trim(); let arr;
+  try{ const j = JSON.parse(raw); arr = Array.isArray(j) ? j : (j.data || (j.comments && j.comments.data) || []); }
+  catch{ arr = raw.split(/\r?\n/).filter(Boolean).map(l=>{ const m=l.trim().match(/^@?([A-Za-z0-9._]+):?\s*(.*)$/); return m?{username:m[1],text:m[2]}:null; }).filter(Boolean); }
+  const out=[];
+  arr.forEach((c,i)=>{
+    out.push({id:c.id||'m'+i,username:norm(c.username||(c.from&&c.from.username)),text:c.text||'',ts:c.timestamp,reply:false});
+    ((c.replies&&c.replies.data)||[]).forEach((r,k)=>out.push({id:r.id||'m'+i+'r'+k,username:norm(r.username),text:r.text||'',ts:r.timestamp,reply:true}));
+  });
+  return out.filter(c=>c.username);
+}
+$('btnManual').onclick = () => {
+  const c = parseManual($('manual').value);
+  if (!c.length) return msg('msgManual','Не вдалося розпізнати жодного коментаря','err');
+  S.comments = c; S.owner = norm($('manualOwner').value);
+  msg('msgManual','Розпізнано коментарів: '+c.length,'ok'); showRules();
+};
+$('btnDemo').onclick = () => {
+  const names=['anna.kyiv','oleh_m','iryna.flowers','max.photo','sofi_lviv','taras88','yulia.art','denys.run','kate_ok','bohdan.dev','marta_s','ivan.ko'];
+  const txt=['Беру участь! @{a} @{b}','@{a} дивись 😍','Хочу виграти 🙏','@{a}','Класний розіграш @{a} @{b} @{c}','@{a} давай разом','супер'];
+  const c=[]; for(let i=0;i<40;i++){ const u=names[i%names.length]; const p=()=>names[Math.floor(Math.random()*names.length)];
+    c.push({id:'d'+i,username:u,text:txt[i%txt.length].replace('{a}',p()).replace('{b}',p()).replace('{c}',p()),reply:i%9===0}); }
+  c.push({id:'own',username:'mybrand',text:'Дякуємо всім! @anna.kyiv',reply:true});
+  S.comments=c; S.owner='mybrand';
+  S.followers=new Set(names.filter((_,i)=>i!==3)); // max.photo not following
+  $('followersText').value=[...S.followers].join('\n');
+  msg('msgConnect','Демо: 41 вигаданий коментар, @max.photo «не підписаний»','ok');
+  showRules();
+};
+
+// ---------- 3. Rules / eligibility ----------
+function showRules(){ $('secRules').classList.remove('hidden'); $('secDraw').classList.remove('hidden'); resetDraw(); recompute(); }
+['minTags','winners','mode','exclude','replies','followersText'].forEach(id=>$(id).addEventListener('input',()=>{ if(id==='followersText') readFollowersText(); resetDraw(); recompute(); }));
+
+function readFollowersText(){
+  const names = $('followersText').value.split(/[\s,;]+/).map(norm).filter(Boolean);
+  S.followers = names.length ? new Set(names) : null;
+}
+$('followersFile').onchange = async e => {
+  const set = new Set(S.followers||[]);
+  for (const f of e.target.files){
+    const t = await f.text();
+    try{ (function walk(o){ if(Array.isArray(o)) o.forEach(walk); else if(o&&typeof o==='object'){
+          if (o.string_list_data) o.string_list_data.forEach(d=>{ if(d.value) set.add(norm(d.value)); else if(d.href){const m=d.href.match(/instagram\.com\/(?:_u\/)?([A-Za-z0-9._]+)/); if(m) set.add(norm(m[1]));} });
+          else if (o.title && typeof o.title==='string' && /^[A-Za-z0-9._]+$/.test(o.title)) set.add(norm(o.title));
+          Object.values(o).forEach(walk);} })(JSON.parse(t)); }
+    catch{ (t.match(/instagram\.com\/(?:_u\/)?([A-Za-z0-9._]+)/g)||[]).forEach(m=>set.add(norm(m.split('/').pop())));
+           if(!/instagram\.com/.test(t)) t.split(/[\s,;]+/).map(norm).filter(Boolean).forEach(n=>set.add(n)); }
+  }
+  set.delete('');
+  S.followers = set.size ? set : null;
+  $('followersText').value = [...set].join('\n');
+  resetDraw(); recompute();
+};
+
+function evaluate(c, excl){
+  if (c.reply && !$('replies').checked) return 'відповідь (replies вимкнено)';
+  if (S.owner && c.username===S.owner) return 'автор поста';
+  if (excl.has(c.username)) return 'у списку виключень';
+  const tags = [...new Set((c.text.match(/@([A-Za-z0-9._]{1,30})/g)||[]).map(norm))].filter(t=>t!==c.username && t!==S.owner);
+  c.tags = tags;
+  const min = Math.max(1, +$('minTags').value||1);
+  if (tags.length < min) return tags.length ? `позначок ${tags.length} < ${min}` : 'немає позначки';
+  if (S.followers && !S.followers.has(c.username)) return 'не підписаний';
+  return '';
+}
+function recompute(){
+  const excl = new Set($('exclude').value.split(/[\s,;]+/).map(norm).filter(Boolean));
+  S.comments.forEach(c=>c.reason=evaluate(c,excl));
+  const valid = S.comments.filter(c=>!c.reason);
+  if ($('mode').value==='person'){
+    const by = new Map(); valid.forEach(c=>{ if(!by.has(c.username)) by.set(c.username,c); });
+    S.pool = [...by.values()];
+  } else S.pool = valid.slice();
+  const people = new Set(valid.map(c=>c.username)).size;
+  msg('msgFollowers', S.followers ? `Список підписників: ${S.followers.size} ніків. Непідписані відсіюються автоматично.` : 'Список підписників не завантажено: підписку переможця перевірите вручну.', S.followers?'ok':'');
+  $('stats').innerHTML = `
+    <div class="stat"><b>${S.comments.length}</b><span>усього коментарів</span></div>
+    <div class="stat"><b>${valid.length}</b><span>підходять за умовами</span></div>
+    <div class="stat"><b>${people}</b><span>унікальних учасників</span></div>
+    <div class="stat"><b>${S.pool.length}</b><span>шансів у барабані</span></div>`;
+  $('tbl').innerHTML = '<tr><th>Нік</th><th>Коментар</th><th>Статус</th></tr>' + S.comments.map(c=>
+    `<tr><td>@${esc(c.username)}${c.reply?' ↩':''}</td><td class="t">${esc(c.text)}</td><td>${c.reason?`<span class="badge b-bad">${esc(c.reason)}</span>`:'<span class="badge b-ok">✓ бере участь</span>'}</td></tr>`).join('');
+}
+
+// ---------- 4. Draw ----------
+function rnd(n){ const a=new Uint32Array(1); const lim=Math.floor(0x100000000/n)*n; do crypto.getRandomValues(a); while(a[0]>=lim); return a[0]%n; }
+function resetDraw(){ S.winners=[]; S.drawn=new Set(); $('results').innerHTML=''; $('drum').textContent='—'; $('stamp').textContent=''; }
+function available(){ const taken=new Set(S.winners.map(w=>w.c.username)); return S.pool.filter(c=>!taken.has(c.username) && !S.drawn.has(c.username)); }
+function spin(cands){
+  return new Promise(res=>{
+    const end = Date.now()+2200; let delay=40;
+    (function tick(){
+      $('drum').textContent='@'+cands[rnd(cands.length)].username;
+      if (Date.now()<end){ delay=Math.min(delay*1.07,220); setTimeout(tick,delay); }
+      else { const w=cands[rnd(cands.length)]; $('drum').textContent='🎉 @'+w.username; res(w); }
+    })();
+  });
+}
+$('btnDraw').onclick = async () => {
+  resetDraw();
+  const n = Math.max(1, +$('winners').value||1);
+  $('btnDraw').disabled=true;
+  for (let i=0;i<n;i++){
+    const cands = available();
+    if (!cands.length){ $('results').insertAdjacentHTML('beforeend','<p class="msg err">Недостатньо учасників.</p>'); break; }
+    const w = await spin(cands); S.drawn.add(w.username);
+    S.winners.push({c:w,status:S.followers?'ok':'unknown'}); renderWinners();
+    if (i<n-1) await new Promise(r=>setTimeout(r,700));
+  }
+  $('btnDraw').disabled=false; $('btnDraw').textContent='🎲 Провести заново';
+  $('stamp').textContent = `Розіграш проведено ${new Date().toLocaleString('uk-UA')} · учасників у барабані: ${S.pool.length} · генератор: crypto.getRandomValues`;
+};
+async function reroll(i){
+  const cands = available();
+  if (!cands.length) return alert('Більше немає учасників для перевибору');
+  const w = await spin(cands); S.drawn.add(w.username);
+  S.winners[i] = {c:w,status:S.followers?'ok':'unknown'}; renderWinners();
+}
+function renderWinners(){
+  $('results').innerHTML = S.winners.map((w,i)=>{
+    const b = w.status==='ok'?'<span class="badge b-ok">підписаний ✓</span>':w.status==='no'?'<span class="badge b-bad">не підписаний</span>':'<span class="badge b-warn">перевірте підписку</span>';
+    return `<div class="win"><div class="place">${i+1}</div><div class="body">
+      <a href="https://www.instagram.com/${encodeURIComponent(w.c.username)}/" target="_blank" rel="noopener">@${esc(w.c.username)}</a>${b}
+      <q>«${esc(w.c.text)}»</q>
+      <div class="acts">
+        <button data-a="open" data-i="${i}">Відкрити профіль</button>
+        ${w.status==='unknown'?`<button data-a="yes" data-i="${i}">✓ Підписаний</button><button data-a="no" data-i="${i}">✗ Не підписаний → перевибрати</button>`:''}
+        <button data-a="re" data-i="${i}">Перевибрати</button>
+      </div></div></div>`;}).join('');
+  $('results').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i, a=b.dataset.a;
+    if (a==='open') window.open('https://www.instagram.com/'+encodeURIComponent(S.winners[i].c.username)+'/','_blank','noopener');
+    if (a==='yes'){ S.winners[i].status='ok'; renderWinners(); }
+    if (a==='no' || a==='re') reroll(i);
+  });
+}
+</script>
+</body>
+</html>
