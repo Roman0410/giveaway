@@ -177,7 +177,16 @@ td.t{word-break:break-word;max-width:340px}
 
 <section class="card hidden" id="secDraw">
   <h2><span class="n">4</span>Розіграш</h2>
-  <div class="row" style="margin-top:0"><button class="pri" id="btnDraw">🎲 Обрати переможця</button></div>
+  <div class="row" style="margin-top:0">
+    <button class="pri" id="btnDraw">🎲 Обрати переможця</button>
+    <label for="spinDur" style="margin:0">Анімація на кожне місце:</label>
+    <select id="spinDur" style="width:auto">
+      <option value="3">3 с</option>
+      <option value="6" selected>6 с</option>
+      <option value="10">10 с</option>
+      <option value="15">15 с</option>
+    </select>
+  </div>
   <div class="drumPlace" id="drumPlace"></div>
   <div class="drum" id="drum">—</div>
   <div id="results"></div>
@@ -423,10 +432,13 @@ const medal = p => p===1?'🥇':p===2?'🥈':p===3?'🥉':p;
 function placeLabel(p){ $('drumPlace').textContent = `${typeof medal(p)==='string'?medal(p)+' ':''}${p} місце`; }
 function spin(cands){
   return new Promise(res=>{
-    const end = Date.now()+2200; let delay=40;
+    const dur = (+$('spinDur').value || 6) * 1000;
+    const start = Date.now(), end = start + dur;
     (function tick(){
       $('drum').textContent='@'+cands[rnd(cands.length)].username;
-      if (Date.now()<end){ delay=Math.min(delay*1.07,220); setTimeout(tick,delay); }
+      const p = Math.min(1, (Date.now()-start)/dur);
+      // fast at first, slows down smoothly towards the end
+      if (Date.now()<end){ setTimeout(tick, 40 + 460*p*p*p); }
       else { const w=cands[rnd(cands.length)]; $('drum').textContent='🎉 @'+w.username; res(w); }
     })();
   });
