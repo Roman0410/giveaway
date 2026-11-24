@@ -43,7 +43,12 @@ details{margin-top:12px}summary{cursor:pointer;color:var(--muted);font-size:13px
 .stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
 .stat{flex:1;min-width:120px;background:var(--bg);border-radius:10px;padding:10px 12px}
 .stat b{display:block;font-size:22px}.stat span{font-size:12px;color:var(--muted)}
-.drum{margin-top:16px;text-align:center;font-size:30px;font-weight:700;min-height:54px;padding:8px;border-radius:12px;background:var(--bg);word-break:break-all}
+.drum{position:relative;margin-top:16px;height:60px;overflow:hidden;border-radius:12px;background:var(--bg);border:2px solid var(--acc)}
+.drum::after{content:"";position:absolute;inset:0;background:linear-gradient(var(--bg),transparent 30%,transparent 70%,var(--bg));opacity:.6;z-index:2;pointer-events:none}
+.reel{position:absolute;left:0;right:0;top:0;will-change:transform}
+.reel div{height:56px;line-height:56px;color:var(--fg)!important;text-align:center;font-size:26px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 12px;color:var(--muted)}
+.reel div.hit{color:var(--acc)!important;font-size:30px}
+.reel div.idle{color:var(--muted)!important}
 .win{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}
 .win .place{font-size:22px;font-weight:800;color:var(--acc);min-width:34px}
 .win .body{flex:1;min-width:0}
@@ -67,6 +72,24 @@ td.t{word-break:break-word;max-width:340px}
 .tblwrap{max-height:380px;overflow:auto}
 .stamp{font-size:12px;color:var(--muted);margin-top:10px}
 .hidden{display:none}
+/* custom select */
+.cs{position:relative}
+.cs select{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.cs-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--fg);text-align:left;font:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.cs-btn:hover{border-color:color-mix(in srgb,var(--acc) 45%,var(--line))}
+.cs.open .cs-btn,.cs-btn:focus-visible{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
+.cs-val{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-arrow{flex-shrink:0;width:18px;height:18px;display:grid;place-items:center;color:var(--muted);transition:transform .2s,color .15s}
+.cs-arrow svg{width:16px;height:16px}
+.cs-btn:hover .cs-arrow,.cs.open .cs-arrow{color:var(--acc)}
+.cs.open .cs-arrow{transform:rotate(180deg)}
+.cs-list{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:20;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:5px;box-shadow:0 12px 30px rgba(0,0,0,.18);opacity:0;transform:translateY(-4px);pointer-events:none;transition:opacity .15s,transform .15s}
+.cs.open .cs-list{opacity:1;transform:none;pointer-events:auto}
+.cs-opt{padding:9px 11px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--fg)}
+.cs-opt::before{content:"";width:8px;height:8px;border-radius:50%;flex-shrink:0;border:2px solid var(--line)}
+.cs-opt.act{background:color-mix(in srgb,var(--acc) 10%,transparent)}
+.cs-opt.sel{font-weight:600;color:var(--acc)}
+.cs-opt.sel::before{background:var(--acc);border-color:var(--acc)}
 </style>
 </head>
 <body>
@@ -165,10 +188,13 @@ td.t{word-break:break-word;max-width:340px}
   </div>
   <label class="chk"><input type="checkbox" id="replies"> Враховувати відповіді на коментарі (replies)</label>
 
-  <label style="margin-top:16px">Список підписників (для автоматичної перевірки підписки)</label>
+  <div class="row" style="margin-top:16px"><button type="button" id="btnFollowers">📋 Завантажити список підписників</button></div>
+  <div id="followersPanel" class="hidden">
+  <label style="margin-top:12px">Список підписників (для автоматичної перевірки підписки)</label>
   <p class="msg" style="margin-top:0">Instagram API <b>не віддає список підписників</b>. Щоб перевіряти підписку автоматично, завантажте файл <code>followers_1.json</code> або <code>.html</code> з архіву даних Instagram (Налаштування → Центр облікових записів → Ваша інформація → Завантажити інформацію → «Підписники та підписки»). Або вставте ніки списком. Без списку підписку переможця перевіряєте вручну кнопкою.</p>
   <input type="file" id="followersFile" accept=".json,.html,.htm,.txt" multiple>
   <textarea id="followersText" placeholder="nick1&#10;nick2&#10;…" style="margin-top:8px;min-height:60px"></textarea>
+  </div>
   <div class="msg" id="msgFollowers"></div>
 
   <div class="stats" id="stats"></div>
@@ -177,18 +203,9 @@ td.t{word-break:break-word;max-width:340px}
 
 <section class="card hidden" id="secDraw">
   <h2><span class="n">4</span>Розіграш</h2>
-  <div class="row" style="margin-top:0">
-    <button class="pri" id="btnDraw">🎲 Обрати переможця</button>
-    <label for="spinDur" style="margin:0">Анімація на кожне місце:</label>
-    <select id="spinDur" style="width:auto">
-      <option value="3">3 с</option>
-      <option value="6" selected>6 с</option>
-      <option value="10">10 с</option>
-      <option value="15">15 с</option>
-    </select>
-  </div>
+  <div class="row" style="margin-top:0"><button class="pri" id="btnDraw">🎲 Обрати переможця</button></div>
   <div class="drumPlace" id="drumPlace"></div>
-  <div class="drum" id="drum">—</div>
+  <div class="drum" id="drum"></div>
   <div id="results"></div>
   <div class="stamp" id="stamp"></div>
 </section>
@@ -377,6 +394,10 @@ function readFollowersText(){
   const names = $('followersText').value.split(/[\s,;]+/).map(norm).filter(Boolean);
   S.followers = names.length ? new Set(names) : null;
 }
+$('btnFollowers').onclick = () => {
+  const p = $('followersPanel'), open = p.classList.toggle('hidden') === false;
+  $('btnFollowers').textContent = open ? '✕ Сховати список підписників' : '📋 Завантажити список підписників';
+};
 $('followersFile').onchange = async e => {
   const set = new Set(S.followers||[]);
   for (const f of e.target.files){
@@ -426,21 +447,35 @@ function recompute(){
 
 // ---------- 4. Draw ----------
 function rnd(n){ const a=new Uint32Array(1); const lim=Math.floor(0x100000000/n)*n; do crypto.getRandomValues(a); while(a[0]>=lim); return a[0]%n; }
-function resetDraw(){ S.winners=[]; S.drawn=new Set(); $('results').innerHTML=''; $('drum').textContent='—'; $('drumPlace').textContent=''; $('stamp').textContent=''; }
+function resetDraw(){ S.winners=[]; S.drawn=new Set(); $('results').innerHTML=''; drumIdle(); $('drumPlace').textContent=''; $('stamp').textContent=''; }
 function available(){ const taken=new Set(S.winners.filter(Boolean).map(w=>w.c.username)); return S.pool.filter(c=>!taken.has(c.username) && !S.drawn.has(c.username)); }
 const medal = p => p===1?'🥇':p===2?'🥈':p===3?'🥉':p;
 function placeLabel(p){ $('drumPlace').textContent = `${typeof medal(p)==='string'?medal(p)+' ':''}${p} місце`; }
+// Reel ("барабан"): a vertical strip of nicknames that scrolls and slows down,
+// stopping with the winner in the highlighted middle row.
+// The winner is picked up front with crypto randomness; the strip is just the show.
+const REEL_ROW = 56, SPIN_MS = 6000;
+function drumIdle(){ $('drum').innerHTML = '<div class="reel"><div class="idle">—</div></div>'; }
 function spin(cands){
   return new Promise(res=>{
-    const dur = (+$('spinDur').value || 6) * 1000;
-    const start = Date.now(), end = start + dur;
-    (function tick(){
-      $('drum').textContent='@'+cands[rnd(cands.length)].username;
-      const p = Math.min(1, (Date.now()-start)/dur);
-      // fast at first, slows down smoothly towards the end
-      if (Date.now()<end){ setTimeout(tick, 40 + 460*p*p*p); }
-      else { const w=cands[rnd(cands.length)]; $('drum').textContent='🎉 @'+w.username; res(w); }
-    })();
+    const dur = SPIN_MS;
+    const w = cands[rnd(cands.length)];
+    const n = Math.max(40, Math.round(dur/1000*14));   // rows that fly past
+    const names = [];
+    for (let i=0;i<n;i++) names.push(cands[rnd(cands.length)].username);
+    names.push(w.username);                               // winner row (index n)
+    for (let i=0;i<2;i++) names.push(cands[rnd(cands.length)].username);
+    $('drum').innerHTML = '<div class="reel">'+names.map((u,i)=>`<div${i===n?' data-win="1"':''}>@${esc(u)}</div>`).join('')+'</div>';
+    const reel = $('drum').firstChild;
+    const startY = 0, endY = -n*REEL_ROW;                 // winner ends in the single visible row
+    const t0 = performance.now();
+    const ease = p => 1 - Math.pow(1-p, 4);               // fast start, long smooth stop
+    (function frame(now){
+      const p = Math.min(1, (now - t0)/dur);
+      reel.style.transform = `translateY(${startY + (endY-startY)*ease(p)}px)`;
+      if (p < 1) requestAnimationFrame(frame);
+      else { const hit = reel.querySelector('[data-win]'); hit.classList.add('hit'); hit.textContent = '🎉 @'+w.username; res(w); }
+    })(t0);
   });
 }
 $('btnDraw').onclick = async () => {
@@ -486,6 +521,39 @@ function renderWinners(){
     if (a==='no' || a==='re') reroll(i);
   });
 }
+
+// ---------- Custom selects (wrap native <select>, keep its value & events) ----------
+function customSelect(sel){
+  const wrap = document.createElement('div'); wrap.className = 'cs';
+  sel.parentNode.insertBefore(wrap, sel); wrap.appendChild(sel); sel.tabIndex = -1;
+  const btn = document.createElement('button'); btn.type='button'; btn.className='cs-btn';
+  btn.setAttribute('aria-haspopup','listbox'); btn.setAttribute('aria-expanded','false');
+  const lbl = document.querySelector(`label[for="${sel.id}"]`); if (lbl){ lbl.htmlFor=''; lbl.onclick=()=>btn.focus(); btn.setAttribute('aria-label', lbl.textContent); }
+  btn.innerHTML = '<span class="cs-val"></span><span class="cs-arrow" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg></span>';
+  const list = document.createElement('div'); list.className='cs-list'; list.setAttribute('role','listbox');
+  wrap.append(btn, list);
+  const opts = [...sel.options];
+  list.innerHTML = opts.map((o,i)=>`<div class="cs-opt" role="option" data-i="${i}">${esc(o.text)}</div>`).join('');
+  const items = [...list.children]; let act = sel.selectedIndex;
+  const sync = () => {
+    btn.firstChild.textContent = sel.options[sel.selectedIndex]?.text || '';
+    items.forEach((el,i)=>{ el.classList.toggle('sel', i===sel.selectedIndex); el.setAttribute('aria-selected', i===sel.selectedIndex); el.classList.toggle('act', i===act); });
+  };
+  const open = v => { wrap.classList.toggle('open', v); btn.setAttribute('aria-expanded', v); if (v){ act = sel.selectedIndex; sync(); } };
+  const pick = i => { if (i!==sel.selectedIndex){ sel.selectedIndex=i; sel.dispatchEvent(new Event('input',{bubbles:true})); sel.dispatchEvent(new Event('change',{bubbles:true})); } open(false); sync(); btn.focus(); };
+  btn.onclick = () => open(!wrap.classList.contains('open'));
+  items.forEach((el,i)=>{ el.onclick = () => pick(i); el.onmouseenter = () => { act=i; sync(); }; });
+  btn.onkeydown = e => {
+    const isOpen = wrap.classList.contains('open');
+    if (e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault(); if(!isOpen) return open(true); act=(act+(e.key==='ArrowDown'?1:-1)+items.length)%items.length; sync(); }
+    else if ((e.key==='Enter'||e.key===' ') && isOpen){ e.preventDefault(); pick(act); }
+    else if (e.key==='Escape') open(false);
+  };
+  document.addEventListener('click', e => { if (!wrap.contains(e.target)) open(false); });
+  sel.addEventListener('input', sync); sel.addEventListener('change', sync);
+  sync();
+}
+document.querySelectorAll('select').forEach(customSelect);
 </script>
 </body>
 </html>
