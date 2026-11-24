@@ -100,6 +100,9 @@ td.t{word-break:break-word;max-width:340px}
   <h2><span class="n">1</span>Підключення акаунта</h2>
   <label for="token">Access token (Instagram API або Facebook Graph API)</label>
   <input id="token" type="password" placeholder="IGAA… або EAA…" autocomplete="off">
+  <label for="igId">ID Instagram-акаунта (лише для токена EAA…, якщо акаунт не знаходиться автоматично)</label>
+  <input id="igId" type="text" inputmode="numeric" placeholder="наприклад 17841425949785833" autocomplete="off">
+  <script>try{ document.getElementById('igId').value = localStorage.getItem('giveaway-igid') || ''; }catch(e){}</script>
   <div class="row">
     <button class="pri" id="btnConnect">Підключити й завантажити пости</button>
     <button id="btnDemo">Демо-режим</button>
@@ -233,11 +236,18 @@ $('btnConnect').onclick = async () => {
       S.owner = norm(me.username); S.mediaPath = '/me/media';
     } else {
       S.base = 'https://graph.facebook.com/v21.0';
-      const pages = await fetchAll('/me/accounts',{fields:'name,instagram_business_account{id,username}'});
-      const p = pages.find(p=>p.instagram_business_account);
-      if (!p) throw new Error('Не знайдено Instagram-акаунт, прив\'язаний до ваших сторінок Facebook');
-      S.owner = norm(p.instagram_business_account.username);
-      S.mediaPath = '/'+p.instagram_business_account.id+'/media';
+      const igId = $('igId').value.trim();
+      try{ localStorage.setItem('giveaway-igid', igId); }catch(e){}
+      if (igId){
+        const ig = await getJSON(apiUrl('/'+igId,{fields:'id,username'}));
+        S.owner = norm(ig.username); S.mediaPath = '/'+ig.id+'/media';
+      } else {
+        const pages = await fetchAll('/me/accounts',{fields:'name,instagram_business_account{id,username}'});
+        const p = pages.find(p=>p.instagram_business_account);
+        if (!p) throw new Error('Не знайдено Instagram-акаунт у ваших сторінках Facebook. Вкажіть ID Instagram-акаунта в полі нижче (доступ через бізнес-портфоліо не показується автоматично).');
+        S.owner = norm(p.instagram_business_account.username);
+        S.mediaPath = '/'+p.instagram_business_account.id+'/media';
+      }
     }
     msg('msgConnect','Підключено: @'+S.owner+'. Завантажую пости…','ok');
     S.media = await fetchAll(S.mediaPath,{fields:'id,caption,permalink,timestamp,media_type,media_url,thumbnail_url,comments_count',limit:50},150);
