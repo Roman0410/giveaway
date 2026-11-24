@@ -147,6 +147,7 @@ td.t{word-break:break-word;max-width:340px}
   <label for="postUrl">Посилання на пост (або клікніть на пост нижче)</label>
   <input id="postUrl" type="text" placeholder="https://www.instagram.com/p/XXXXXXXX/">
   <div class="media" id="media"></div>
+  <div class="row" style="justify-content:center"><button id="btnMore" class="hidden">Показати ще</button></div>
   <div class="row">
     <button class="pri" id="btnComments" disabled>Завантажити коментарі</button>
   </div>
@@ -250,18 +251,41 @@ $('btnConnect').onclick = async () => {
       }
     }
     msg('msgConnect','Підключено: @'+S.owner+'. Завантажую пости…','ok');
-    S.media = await fetchAll(S.mediaPath,{fields:'id,caption,permalink,timestamp,media_type,media_url,thumbnail_url,comments_count',limit:50},150);
-    msg('msgConnect','Підключено: @'+S.owner+' · постів: '+S.media.length,'ok');
-    renderMedia();
+    S.media = []; S.shown = 0; S.mediaId = null;
+    S.mediaNext = apiUrl(S.mediaPath,{fields:'id,caption,permalink,timestamp,media_type,media_url,thumbnail_url,comments_count',limit:24});
+    $('secPost').classList.remove('hidden');
+    await showMore();
+    msg('msgConnect','Підключено: @'+S.owner,'ok');
   }catch(e){ msg('msgConnect','Помилка: '+e.message,'err'); }
 };
 
+// ---------- Posts: load 3 rows at a time ----------
+const ROWS_PER_STEP = 3;
+function gridCols(){ const t = getComputedStyle($('media')).gridTemplateColumns; return Math.max(1, t && t!=='none' ? t.split(' ').length : 4); }
+async function fetchMediaPage(){
+  if (!S.mediaNext) return false;
+  const j = await getJSON(S.mediaNext);
+  S.media.push(...(j.data||[]));
+  S.mediaNext = (j.paging && j.paging.next) || null;
+  return true;
+}
+async function showMore(){
+  const btn = $('btnMore'); btn.disabled = true; btn.textContent = 'Завантажую…';
+  try{
+    const need = S.shown + gridCols()*ROWS_PER_STEP;
+    while (S.media.length < need && S.mediaNext) await fetchMediaPage();
+    S.shown = Math.min(need, S.media.length);
+    renderMedia();
+  } catch(e){ msg('msgPost','Помилка: '+e.message,'err'); }
+  finally { btn.disabled = false; btn.textContent = 'Показати ще'; }
+}
+$('btnMore').onclick = showMore;
 function renderMedia(){
-  $('secPost').classList.remove('hidden');
-  $('media').innerHTML = S.media.map(m=>`<div class="m" data-id="${esc(m.id)}">
+  $('media').innerHTML = S.media.slice(0,S.shown).map(m=>`<div class="m${m.id===S.mediaId?' sel':''}" data-id="${esc(m.id)}">
     <img loading="lazy" src="${esc(m.thumbnail_url||m.media_url||'')}" alt="">
     <div>💬 ${m.comments_count??'?'} · ${esc((m.caption||'').slice(0,40))}</div></div>`).join('');
   $('media').querySelectorAll('.m').forEach(el=>el.onclick=()=>selectMedia(el.dataset.id));
+  $('btnMore').classList.toggle('hidden', !(S.shown < S.media.length || S.mediaNext));
 }
 function selectMedia(id){
   S.mediaId = id;
@@ -269,12 +293,25 @@ function selectMedia(id){
   const m = S.media.find(m=>m.id===id); if (m && m.permalink) $('postUrl').value = m.permalink;
   $('btnComments').disabled = false;
 }
-$('postUrl').oninput = () => {
+let lastCode = null;
+$('postUrl').oninput = async () => {
   const code = ($('postUrl').value.match(/\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/)||[])[1];
-  const m = code && S.media.find(m=>(m.permalink||'').includes('/'+code));
-  if (m) selectMedia(m.id); else { S.mediaId=null; $('btnComments').disabled=true;
+  if (code === lastCode) return; lastCode = code;
+  const find = () => code && S.media.findIndex(m=>(m.permalink||'').includes('/'+code));
+  let i = find();
+  // not loaded yet: fetch further pages (up to ~500 posts) to find it
+  if (code && i < 0 && S.mediaNext){
+    msg('msgPost','Шукаю пост серед старіших публікацій…');
+    try{ while (i < 0 && S.mediaNext && S.media.length < 500){ await fetchMediaPage(); i = find(); } }
+    catch(e){ return msg('msgPost','Помилка: '+e.message,'err'); }
+  }
+  if (code !== lastCode) return;
+  if (i >= 0){
+    if (i >= S.shown){ const step = gridCols(); S.shown = Math.ceil((i+1)/step)*step; }
+    S.mediaId = S.media[i].id; renderMedia(); selectMedia(S.mediaId); msg('msgPost','');
+  } else { S.mediaId=null; $('btnComments').disabled=true;
     $('media').querySelectorAll('.m').forEach(el=>el.classList.remove('sel'));
-    if (code) msg('msgPost','Пост не знайдено серед завантажених постів вашого акаунта','err'); }
+    if (code) msg('msgPost','Пост не знайдено серед публікацій вашого акаунта','err'); }
 };
 
 // ---------- 2. Comments ----------
