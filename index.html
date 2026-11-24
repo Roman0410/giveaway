@@ -28,8 +28,12 @@ button{font:inherit;border:0;border-radius:9px;padding:9px 16px;cursor:pointer;b
 button.pri{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-weight:600}
 button:disabled{opacity:.5;cursor:default}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
-@media (max-width:600px){.grid2{grid-template-columns:1fr}}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 14px}
+.grid2>*{min-width:0}
+@media (max-width:600px){.grid2{grid-template-columns:minmax(0,1fr)}}
+/* phones: 16px inputs stop iOS from zooming in on focus */
+@media (max-width:600px){input[type=text],input[type=password],input[type=number],textarea,.cs-btn{font-size:16px}}
+.cs,.cs-btn{min-width:0}
 .chk{display:flex;gap:8px;align-items:flex-start;margin-top:10px;color:var(--fg);font-size:14px}
 .chk input{margin-top:4px}
 .msg{font-size:13px;margin-top:10px;color:var(--muted)}
@@ -183,7 +187,7 @@ td.t{word-break:break-word;max-width:340px}
     <div><label for="minTags">Мінімум позначок у коментарі</label><input id="minTags" type="number" min="1" value="1"></div>
     <div><label for="winners">Кількість переможців</label><input id="winners" type="number" min="1" value="1"></div>
     <div><label for="mode">Шанси</label>
-      <select id="mode"><option value="person">1 людина = 1 шанс</option><option value="comment">Кожен коментар з позначкою = окремий шанс</option></select></div>
+      <select id="mode"><option value="person">1 людина = 1 шанс</option><option value="comment">Кожен коментар = 1 шанс</option></select></div>
     <div><label for="exclude">Виключити акаунти (через кому)</label><input id="exclude" type="text" placeholder="mybrand, friend.account"></div>
   </div>
   <label class="chk"><input type="checkbox" id="replies"> Враховувати відповіді на коментарі (replies)</label>
